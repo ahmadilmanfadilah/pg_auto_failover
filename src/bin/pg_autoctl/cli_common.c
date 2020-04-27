@@ -36,6 +36,8 @@ KeeperConfig keeperOptions;
 bool allowRemovingPgdata = false;
 bool createAndRun = false;
 bool outputJSON = false;
+
+int help_flag = 0;
 int ssl_flag = 0;
 
 static void stop_postgres_and_remove_pgdata_and_config(ConfigFilePaths *pathnames,
@@ -56,6 +58,7 @@ static void stop_postgres_and_remove_pgdata_and_config(ConfigFilePaths *pathname
  *		{ "auth", required_argument, NULL, 'A' },
  *		{ "skip-pg-hba", required_argument, NULL, 'S' },
  *		{ "dbname", required_argument, NULL, 'd' },
+ *		{ "hostname", required_argument, NULL, 'h' },
  *		{ "nodename", required_argument, NULL, 'n' },
  *		{ "formation", required_argument, NULL, 'f' },
  *		{ "group", required_argument, NULL, 'g' },
@@ -65,10 +68,10 @@ static void stop_postgres_and_remove_pgdata_and_config(ConfigFilePaths *pathname
  *		{ "version", no_argument, NULL, 'V' },
  *		{ "verbose", no_argument, NULL, 'v' },
  *		{ "quiet", no_argument, NULL, 'q' },
- *		{ "help", no_argument, NULL, 'h' },
+ *		{ "help", no_argument, NULL, 0 },
  *		{ "candidate-priority", required_argument, NULL, 'P'},
  *		{ "replication-quorum", required_argument, NULL, 'r'},
- *		{ "help", no_argument, NULL, 0 },
+ *		{ "help", no_argument, &help_flag, 0 },
  *		{ "run", no_argument, NULL, 'x' },
  *      { "ssl-self-signed", no_argument, NULL, 's' },
  *      { "no-ssl", no_argument, NULL, 'N' },
@@ -222,6 +225,14 @@ cli_create_node_getopts(int argc, char **argv,
 				break;
 			}
 
+			case 'h':
+			{
+				/* { "hostname", required_argument, NULL, 'h' } */
+				strlcpy(LocalOptionConfig.hostname, optarg, _POSIX_HOST_NAME_MAX);
+				log_trace("--hostname %s", LocalOptionConfig.hostname);
+				break;
+			}
+
 			case 'n':
 			{
 				/* { "nodename", required_argument, NULL, 'n' } */
@@ -353,13 +364,6 @@ cli_create_node_getopts(int argc, char **argv,
 				break;
 			}
 
-			case 'h':
-			{
-				commandline_help(stderr);
-				exit(EXIT_CODE_QUIT);
-				break;
-			}
-
 			case 'x':
 			{
 				/* { "run", no_argument, NULL, 'x' }, */
@@ -411,6 +415,12 @@ cli_create_node_getopts(int argc, char **argv,
 			 */
 			case 0:
 			{
+				if (help_flag)
+				{
+					commandline_help(stderr);
+					exit(EXIT_CODE_QUIT);
+				}
+
 				if (ssl_flag != SSL_MODE_FLAG)
 				{
 					if (!cli_getopt_accept_ssl_options(SSL_CLI_USER_PROVIDED,
