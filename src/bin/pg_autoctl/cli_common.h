@@ -175,4 +175,6 @@ void cli_drop_local_node(KeeperConfig *config, bool dropAndDestroy);
 
 bool cli_pg_autoctl_reload(const char *pidfile);
 
+int cli_node_metadata_getopts(int argc, char **argv);
+
 #endif  /* CLI_COMMON_H */
